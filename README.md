@@ -1,3 +1,5 @@
+### The website is open source on GitHub and build with cutting-edge technologies NEXT Js, React, firebase, and Redis and deployed on Vercel.
+
 ### <a href="https://www.lgutimetable.live/contribute"><div align="center">LGU TIMETABLE</div>
 </a>
 
