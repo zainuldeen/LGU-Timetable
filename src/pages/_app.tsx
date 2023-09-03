@@ -2,48 +2,58 @@ import '~/styles/globals.css';
 import type { AppProps } from 'next/app';
 
 import { useState } from 'react';
-
-import type { TimetableInput } from '~/types/typedef';
-import { TimeTableInputContext } from '~/hooks/TimetableInputContext';
+import { useRouter } from 'next/router';
 
 import Header from '~/components/Header';
 import Footer from '~/components/Footer';
 import NextNProgress from 'nextjs-progressbar';
 import DarkTheme from '~/components/design/DarkTheme';
+import BgGlow from '~/components/BgGlow';
+import { AppStyleProvider, appTheme } from '~/styles/Style';
 
 // credentials
 import OneTap from '~/components/OneTap';
 import { UserCredentialsContext } from '~/hooks/UserCredentialsContext';
 import { useUserCredentials } from '~/hooks/hooks';
-import { AppStyleProvider, appTheme } from '~/styles/Style';
-import { useRouter } from 'next/router';
 
-const footerPages = ['/', '/contribute', '/developer', '/notifications', '/freeclassrooms'];
+import ChatAppStateProvider, {
+    AppState as ChatAppState,
+    defaultState as defaultChatAppState
+} from '~/components/chat_room/hooks/AppStateProvider';
+
+// import UpComingEvent from '~/components/design/UpCommingEvent';
+// import { Center } from '@chakra-ui/react';
+
+
+const footerPages = ['/', '/contribute', '/developer', '/freeclassrooms'];
+const excludeHeadPages = ['/contribute'];
 
 export default function App({ Component, pageProps }: AppProps) {
-   const [timeTableInput, setTimeTableInput] = useState<TimetableInput>({
-      fall: null,
-      semester: null,
-      section: null
-   });
+    const [user, setUser] = useUserCredentials();
+    const router = useRouter();
+    
+    // chat app state for caching
+    const [chatAppState, setChatAppState] = useState<ChatAppState>(defaultChatAppState);
 
-   const [user, setUser] = useUserCredentials();
-   const router = useRouter();
-
-   return (
-      <>
-         <TimeTableInputContext.Provider value={{ timeTableInput, setTimeTableInput }}>
+    return (
+        <>
             <UserCredentialsContext.Provider value={{ user, setUser }}>
-               <NextNProgress color="var(--loader-color)" />
-               <AppStyleProvider theme={appTheme}>
-                  <DarkTheme />
-                  <OneTap />
-                  {router.pathname != '/contribute' && <Header />}
-                  <Component {...pageProps} />
-                  {footerPages.includes(router.pathname) && <Footer fixedBottom={false} />}
-               </AppStyleProvider>
+                <BgGlow />
+                <NextNProgress color="var(--loader-color)" />
+                <AppStyleProvider theme={appTheme}>
+                    <DarkTheme />
+                    <OneTap />
+                    {/*<Center>
+                        <UpComingEvent/>
+                    </Center>*/}
+                    {!excludeHeadPages.includes(router.pathname) && <Header />}
+                    <ChatAppStateProvider.Provider value={[chatAppState, setChatAppState]}>
+                        <Component {...pageProps} />
+                    </ChatAppStateProvider.Provider>
+                    {footerPages.includes(router.pathname) && <Footer fixedBottom={false} />}
+                    {router.pathname.includes('/timetable/') && <Footer fixedBottom={false} />}
+                </AppStyleProvider>
             </UserCredentialsContext.Provider>
-         </TimeTableInputContext.Provider>
-      </>
-   );
+        </>
+    );
 }
